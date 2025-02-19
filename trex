@@ -1,0 +1,165 @@
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Rebar;
+using System.Media;
+using static System.Formats.Asn1.AsnWriter;
+
+
+namespace trex
+{
+    public partial class Form1 : Form
+    {
+        private bool jumping = false;
+        private int jumpSpeed = 10;
+        private int force = 12;
+        private int score = 0;
+        private int cactusSpeed = 10;
+       
+
+        Random rand = new Random();
+
+        PictureBox[] cactusArray;
+        PictureBox activeCactus;
+
+        private SoundPlayer hit;
+        public Form1()
+        {
+            InitializeComponent();
+
+            string hitPath = "C:\\Users\\Edrian Benedict\\Desktop\\gawagawa\\trex\\trex\\bin\\Debug\\net8.0-windows\\video-game-music-loop-27629";
+            hit = new SoundPlayer(hitPath);
+
+            cactusArray = new PictureBox[] { cactus1, cactus2, cactus3 };
+
+            // Select a random cactus to start with
+            activeCactus = cactusArray[rand.Next(cactusArray.Length)];
+            activeCactus.Visible = true;  // Show the initially active cactus
+           
+            ResetGame();
+            
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+        private void MainGameTimerEvent(object sender, EventArgs e)
+        {
+
+        }
+        private void ResetGame()
+        {
+            jumping = false;
+            jumpSpeed = 0;
+            force = 12;
+            score = 0;
+            cactusSpeed = 10;  // Reset cactus speed to initial value
+
+            // Hide all cacti and position them off-screen
+            foreach (var cactus in cactusArray)
+            {
+                cactus.Visible = false;
+                cactus.Left = 600;  // Put cacti off-screen
+            }
+
+            // Select a new random cactus for the game start
+            activeCactus = cactusArray[rand.Next(cactusArray.Length)];
+            activeCactus.Visible = true;
+            activeCactus.Left = 500;  // Start cactus at position 500
+
+            Dino.Top = 100; // Reset dinosaur position
+            GameTimer.Start();
+        }
+
+        private void Key(object sender, KeyEventArgs e)
+        {
+
+        }
+
+        private void KeyIsDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Space && !jumping)
+            {
+                jumping = true;
+            }
+        }
+
+        private void KeyIsUp(object sender, KeyEventArgs e)
+        {
+            if (jumping)
+            {
+                jumping = false;
+            }
+        }
+
+      
+      private void GameTimer_Tick(object sender, EventArgs e)
+        {
+            Dino.Top += jumpSpeed;
+
+            if (jumping && force < 0)
+            {
+                jumping = false;
+            }
+
+            if (jumping)
+            {
+                jumpSpeed = -12;
+                force -= 1;
+
+
+            }
+            else
+            {
+                jumpSpeed = 12;
+            }
+
+            if (Dino.Top >= 100 && !jumping) // Ground level is 300
+            {
+                force = 12;
+                Dino.Top = 100;
+                jumpSpeed = 0;
+            }
+
+            // Move the active cactus
+            activeCactus.Left -= cactusSpeed;
+
+            // If the active cactus goes off the screen, select a new one
+            if (activeCactus.Left < -100)
+            {
+                // Hide the old cactus
+                activeCactus.Visible = false;
+
+                // Select a new random cactus
+                activeCactus = cactusArray[rand.Next(cactusArray.Length)];
+                activeCactus.Left = rand.Next(600, 800);  // Position it ahead
+                activeCactus.Visible = true;  // Make it visible
+
+                // Increase the score
+                score++;
+            }
+
+            // Collision detection
+            if (Dino.Bounds.IntersectsWith(activeCactus.Bounds))
+            {
+                GameTimer.Stop();
+
+
+                MessageBox.Show($"Game Over! Your score is: {score}");
+                ResetGame();
+            }
+
+            // Update the score label
+            ScoreLabel.Text = "Score: " + score;
+
+            // Adjust speed every 100 points
+            if (score > 0 && score % 100 == 0)
+            {
+                cactusSpeed += 1;  // Increase speed
+            }
+        }
+
+        private void pictureBox2_Click(object sender, EventArgs e)
+        {
+
+        }
+    }
+}
